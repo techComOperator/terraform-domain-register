@@ -20,6 +20,10 @@ resource "aws_acm_certificate" "domain_acm_certificate" {
   domain_name       = var.domain_name
   validation_method = "DNS"
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
   tags = var.tag_list
 }
 
@@ -66,6 +70,10 @@ resource "aws_acm_certificate" "alternative_acm_certificates" {
 
   domain_name       = each.value
   validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   tags = var.tag_list
 }
