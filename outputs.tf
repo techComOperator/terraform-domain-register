@@ -13,7 +13,7 @@ output "root_domain_certificate" {
     value = aws_acm_certificate.domain_acm_certificate
 }
 
-output "alternative_domain_certifcates" {
+output "alternative_domain_certificates" {
     description = "An array of objects that houses any alternative domains."
     value = aws_acm_certificate.alternative_acm_certificates
 }
