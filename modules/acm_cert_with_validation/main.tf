@@ -1,13 +1,16 @@
 variable "domain_name" {
     type = string
+    description = "Passthrough from top-level. Just needs a FQDN."
 }
 
 variable "tag_list" {
   type = map(string)
+  description = "Passthrough from top-level."
 }
 
 variable "zone_id" {
   type = string
+  description = "Zone ID to place the validation records."
 }
 
 resource "aws_acm_certificate" "acm_certificate" {
