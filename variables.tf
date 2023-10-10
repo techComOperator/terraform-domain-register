@@ -7,13 +7,13 @@ variable "domain_name" {
 # Once given, this would then need to be looped over to generate the cert resource
 # and create the validation records.
 variable "acm_alternative_domain_list" {
-  type        = map(string)
+  type        = set(string)
   description = "Creates ACM certs based off of how many ACM"
-  default = {}
+  default     = []
 }
 
 variable "tag_list" {
   type        = map(any)
   description = "Pass in a set of tags to give the various resources."
-  default = {}
+  default     = {}
 }
