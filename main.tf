@@ -15,18 +15,6 @@ resource "aws_route53_zone" "zone" {
   tags = var.tag_list
 }
 
-# Creates the ACM Certificate for the given domain.
-resource "aws_acm_certificate" "domain_acm_certificate" {
-  domain_name       = var.domain_name
-  validation_method = "DNS"
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  tags = var.tag_list
-}
-
 # These name servers are assigned when you create and/or import the domain from another
 # registrar. This resource is adopted and won't be destroyed on `terraform destroy`.
 # Probably a one-time thing. Also can be used for a module.
@@ -47,53 +35,22 @@ resource "aws_route53domains_registered_domain" "domain" {
   }
 }
 
-resource "aws_route53_record" "acm_validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.domain_acm_certificate.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  }
+# Generate the ACM and validation records for the Domain.
+module "domain_acm" {
+  source = "./modules/acm_cert_with_validation"
 
-  allow_overwrite = true
-  name            = each.value.name
-  records         = [each.value.record]
-  ttl             = 60
-  type            = each.value.type
-  zone_id         = aws_route53_zone.zone.zone_id
+  domain_name = var.domain_name
+  tag_list = var.tag_list
+  zone_id = aws_route53_zone.zone.zone_id
 }
 
-# Generate certificates if there's values inside of this var.
-resource "aws_acm_certificate" "alternative_acm_certificates" {
+# If any other domains need to be validated with certs, generate those.
+module "alternative_acm" {
+  source = "./modules/acm_cert_with_validation"
+
   for_each = var.acm_alternative_domain_list
 
-  domain_name       = each.value
-  validation_method = "DNS"
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  tags = var.tag_list
-}
-
-# Add to the validation via DNS.
-resource "aws_route53_record" "alternative_acm_validation" {
-  for_each = {
-    for alternative_domains in aws_acm_certificate.alternative_acm_certificates : alternative_domains => {
-      for dvo in alternative_domains.domain_validation_options : dvo.domain_name => {
-        name   = dvo.resource_record_name
-        record = dvo.resource_record_value
-        type   = dvo.resource_record_type
-      }
-    }
-  }
-
-  allow_overwrite = true
-  name            = each.value.name
-  records         = [each.value.record]
-  ttl             = 60
-  type            = each.value.type
-  zone_id         = aws_route53_zone.zone.zone_id
+  domain_name = each.value
+  tag_list = var.tag_list
+  zone_id = aws_route53_zone.zone.zone_id
 }
