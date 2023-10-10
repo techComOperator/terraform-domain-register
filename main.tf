@@ -48,7 +48,7 @@ module "domain_acm" {
 module "alternative_acm" {
   source = "./modules/acm_cert_with_validation"
 
-  for_each = var.acm_alternative_domain_list
+  for_each = var.fqdn_subdomain_list
 
   domain_name = each.value
   tag_list = var.tag_list
